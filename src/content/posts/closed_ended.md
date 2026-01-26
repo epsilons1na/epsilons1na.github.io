@@ -3,6 +3,8 @@ title: "[TSG-CTF 2025]-Pwn/Closed-ended"
 published: 2025-12-22
 description: "Canary check bypass then mprotect and profit with rop chain."
 tags: ["pwn", "gdb"]
+category: ROP
+
 ---
 
 ### Overview
