@@ -1,6 +1,9 @@
 # About
 Hii 
-I am Divyam, an 18yo-pwner and sophomore @IITR
-I mainly play ctfs with InfosecIITR
-I enjoy reading novel and comic books,and sometime I write blogs.
+
+I am Divyam,18yo-pwner and sophomore @IITR.
+
+I mainly play CTFs with InfosecIITR.
+
+I enjoy reading novel and comic books,and sometimes I write blogs.
 
