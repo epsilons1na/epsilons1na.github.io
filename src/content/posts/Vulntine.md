@@ -8,8 +8,8 @@ category: Stack
 ---
 
 ### Overview
-This is another challenge that I made for ```n00bCTF``` of ```InfosecIITR```.My initial idea was to make solvers familiar with one-gadget ,but when I did program the source code and then test it,I realised direct one-gadget is not possible due to the constraint of execve.
-But Due to abundance of ROP gadget in libc, this challenge is solvable.
+This is [another](https://epsilons1na.github.io/posts/Googogaga/) challenge that I made for ```n00bCTF``` of ```InfosecIITR```.My initial idea was to make solvers familiar with one-gadget ,but when I did program the source code and then test it,I realised ```direct one-gadget```is not possible due to the ```constraint of execve```.
+But Due to abundance of ```ROP gadget in libc```, this challenge is solvable.
 This challenge can also be solved using stack pivot.I predicted this but I did not patch stack and elf leak because of tough exploitation.
 ```md
 Canary                                  : Enabled
@@ -55,7 +55,7 @@ int main() {
 
 ```
 ### Exploitation 
-Exploitaion part is simple in this challenge as there is printf function for easy leak of libc address.Now the main part is to satisfy the constraint of execve or one gadget syscall.
+Exploitaion part is simple in this challenge as there is ```printf function``` for easy ```leak of libc address```.Now the main part is to satisfy the ```constraint of execve``` or one gadget.
 
 ```md
 $rax: 0x0000000000000000
@@ -76,17 +76,17 @@ $r13: 0x00007ffede3eedf0  ->  0x0000000000000001
 $r14: 0x0000000000000000
 $r15: 0x0000000000000000
 ```
-This is the snapshot of the registers in gdb at the ret instructions in main.
+This is the ```snapshot``` of the registers in ````gef``` at the ```ret``` instructions in main.
 ```md
 0x0000000000044b7b : mov rdx, r15 ; mov rsi, r12 ; mov rdi, r14 ; call rbp
 ```
-This is the Rop chain in libc that can be used to bypass one gadget constraint.
+This is the ```Rop chain``` in libc that can be used to bypass one gadget constraint.
 ```md
         <execvpe+0x281>   mov    rsi, r15
         <execvpe+0x284>   lea    rdi, [rip + 0xd0ab2] # 0x71eef8a0b5bd ('/bin/sh'?)
 ```
 And above is the one-gadget .
-So the plan is to put above one-gadget in RBP and ROP chain at RSP.As after executing ROP chain,
+So the plan is to put above one-gadget in``` RBP and ROP chain at RSP```.As after executing ROP chain,
 value in r15  will be copied to rdx and rsi thus fulfilling execve syscall constraint.
 
 ```python
