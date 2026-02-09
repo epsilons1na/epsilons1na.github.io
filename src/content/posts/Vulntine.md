@@ -76,7 +76,7 @@ $r13: 0x00007ffede3eedf0  ->  0x0000000000000001
 $r14: 0x0000000000000000
 $r15: 0x0000000000000000
 ```
-This is the ```snapshot``` of the registers in ````gef``` at the ```ret``` instructions in main.
+This is the ```snapshot``` of the registers in ```gef``` at the ```ret``` instructions in main.
 ```md
 0x0000000000044b7b : mov rdx, r15 ; mov rsi, r12 ; mov rdi, r14 ; call rbp
 ```
