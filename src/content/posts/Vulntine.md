@@ -55,7 +55,7 @@ int main() {
 
 ```
 ### Exploitation 
-Exploitaion part is simple in this challenge as there is ```printf function``` for easy ```leak of libc address```.Now the main part is to satisfy the ```constraint of execve``` or one gadget.
+Exploitation part is simple in this challenge as there is ```printf function``` for easy ```leak of libc address```.Now the main part is to satisfy the ```constraint of execve``` or one gadget.
 
 ```md
 $rax: 0x0000000000000000
