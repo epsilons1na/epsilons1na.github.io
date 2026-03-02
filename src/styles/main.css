@@ -187,7 +187,12 @@
 .custom-md li {
     @apply text-lg leading-relaxed;
 } */
+/* .custom-md p,
+.custom-md li {
+    @apply text-lg leading-relaxed text-slate-200 font-normal mx-auto;
+} */
+/* Update this block at the bottom of main.css */
 .custom-md p,
 .custom-md li {
-    @apply text-lg leading-relaxed text-slate-200 font-normal max-w-prose mx-auto;
+    @apply text-lg leading-relaxed text-black/80 dark:text-white/80;
 }
