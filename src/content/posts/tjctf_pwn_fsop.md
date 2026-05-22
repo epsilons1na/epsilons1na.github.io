@@ -111,7 +111,7 @@ _IO_fread (void *buf, size_t size, size_t count, FILE *fp)
   return bytes_requested == bytes_read ? count : bytes_read / size;
 }
 ```
-This is implementation of fread in libc.I have pasted all the source code below and will explain the path which will lead to arb write.Above code calculates bytes_requested then sanity check the file structure(fp->this is the same fp that we have write primitive on.), then does some locking stuff and calls _IO_sgetn.
+This is implementation of fread in libc. I have pasted all the source code below and will explain the path which will lead to arb write. Above code calculates bytes_requested then sanity check the file structure(fp->this is the same fp that we have write primitive on.), then does some locking stuff and calls _IO_sgetn.
 
 ```c
 
@@ -475,7 +475,7 @@ _IO_flush_all_lockp (int do_lock)
 }
 ```
 
-My payload relied on the fact that _IO_OVERFLOW (fp, EOF) -> this should be called with fp as ```stderr``` which should be easy peasy cuz ```_IO_list_all``` is linked list that is initialized to ```stderr```. and then next fp traverses via ```_chain```. But guess what i did not account for ,the new file structure which was allocated on heap.May be I did but I think, I assumed it to be placed at the end of linked list which was not the case,
+My payload relied on the fact that _IO_OVERFLOW (fp, EOF) -> this should be called with fp as ```stderr``` which should be easy peasy cuz ```_IO_list_all``` is linked list that is initialized to ```stderr```. and then next fp traverses via ```_chain```. But guess what i did not account for ,the new file structure which was allocated on heap. May be I did but I think, I assumed it to be placed at the end of linked list which was not the case,
 and the reason is this
 ```c
 
@@ -605,7 +605,7 @@ io.interactive()
 ```
 
 ### A better exploit?
-As libc version is 2.34, tls sections is alligned with libc sections and thus we can also overwrite ```dtor_list``` struct and get shell.I am too lazy to make exploit with this but I will just yoink the src code and disassembly and explain some stuff.
+As libc version is 2.34, tls sections is alligned with libc sections and thus we can also overwrite ```dtor_list``` struct and get shell. I am too lazy to make exploit with this but I will just yoink the src code and disassembly and explain some stuff.
 ```c
 typedef void (*dtor_func) (void *);
 
