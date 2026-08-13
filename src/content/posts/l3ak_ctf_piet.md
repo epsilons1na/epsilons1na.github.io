@@ -248,7 +248,7 @@ static Pos exit_codel(const Pos* block, int size, dir dp, dir cc) {
 }
 ```
 
-![speed](../../assets/images/speed.png)
+<!-- ![speed](../../assets/images/speed.png) -->
 
 I did not understand anything in this during ctf, but [This](https://www.dangermouse.net/esoteric/piet.html) and [this](https://codegolf.stackexchange.com/questions/246224/simplified-piet-interpreter) blogs: helped me understanding functionality of `exit_codel` and How piet executes.
 ![DP1](../../assets/images/DP_CC.png)
@@ -1038,3 +1038,4 @@ All handouts are [here.](https://github.com/el-s1na/CTF-Scripts/tree/main/L3AK-C
 Disclaimer: No intention to offend anyone, Just little light humour.
 TODO: i sleep i wake
 TODO: quagmire dear diary jackpot
+UPDATE: Dropping it, my conservative self could not outwoke my woke friend
