@@ -1,7 +1,7 @@
 ---
 title: "Random 3-AM thoughts..."
 published: 2026-09-04
-description: ""
+description: "Some random thoughts I want to share~"
 tags: ["Random"]
 category: Random
 ---
