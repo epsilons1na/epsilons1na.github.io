@@ -232,3 +232,7 @@ io.interactive()
 
 ### Aftermath
 Pretty fun challenge, new attack surface exploration is always exciting!
+
+### Refernces
+https://0xa5h.com/pwn/fork_gadget
+https://0xa5h.com/pwn/setcontext
