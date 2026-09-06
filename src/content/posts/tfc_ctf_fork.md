@@ -7,7 +7,7 @@ category: Pwn
 ---
 
 ### Overview
-Last weekend, I tried TFC-CTF, and solved this challenge, which kinda demonstrated the rce using fork gadget. 0xa5h already wrote a cool blog dictating the attack, and the challenge also had pretty much same source code.
+Last weekend, I tried TFC-CTF, and solved this challenge, which kinda demonstrated the rce using fork gadget. [0xa5h](https://0xa5h.com/pwn/fork_gadget) already wrote a cool [blog](https://0xa5h.com/pwn/fork_gadget) dictating the attack, and the challenge also had pretty much same source code.
 
 ### Source Code
 ```c
