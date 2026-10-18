@@ -13,7 +13,6 @@ Interests: Compiler, Hardware devices and security, Complex Analysis
 Extra Interest: Collecting Books and Mangas, Cosplays, Figurines
 
 Projects:\
-    CTF-Challenge Dev:\
         Backdoor-CTF 2025\
         n00b-CTF     2025\
         ICC-CTF      2026\
