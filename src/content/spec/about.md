@@ -17,6 +17,5 @@ Projects:\
         Backdoor-CTF 2025\
         n00b-CTF     2025\
         ICC-CTF      2026\
-    Hardware Security:\
         CSAW ESC 2026 QUALS\
         IITK HARDWARE CHALLENGE QUALS 2026
