@@ -19,4 +19,4 @@ Projects:\
         ICC-CTF      2026\
     Hardware Security:\
         CSAW ESC 2026 QUALS\
-        IITK HARDWARE CHALLENGE QUALS 2026\
+        IITK HARDWARE CHALLENGE QUALS 2026
